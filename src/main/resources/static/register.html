@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ro" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Nexus RAG - Înregistrare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-mesh min-h-screen flex items-center justify-center p-4">
+<div class="glass bg-white/10 border border-white/10 p-10 rounded-3xl shadow-2xl w-full max-w-md">
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold text-white">Cont Nou</h1>
+        <p class="text-slate-400 mt-2">Creează un cont pentru analize hibride</p>
+    </div>
+
+    <div class="space-y-6">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Alege Utilizator</label>
+            <div class="relative">
+                <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="text" id="regUser" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 focus:border-emerald-500 outline-none transition-all">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Adresă de Email</label>
+            <div class="relative">
+                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="email" id="regEmail" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 focus:border-emerald-500 outline-none transition-all">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Parolă</label>
+            <div class="relative">
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="password" id="regPass" class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-12 focus:border-emerald-500 outline-none transition-all">
+                <button type="button" onclick="togglePassword('regPass', 'regEye')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors focus:outline-none">
+                    <i id="regEye" class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="handleRegister()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95">
+            Creează Cont
+        </button>
+        <a href="/login" class="block text-center text-slate-400 text-sm hover:text-white transition-colors">Înapoi la Logare</a>
+    </div>
+</div>
+
+<script>
+    async function handleRegister() {
+        const u = document.getElementById('regUser').value;
+        const e = document.getElementById('regEmail').value;
+        const p = document.getElementById('regPass').value;
+
+        if(!u || !e || !p) {
+            alert("Te rugăm să completezi toate câmpurile!");
+            return;
+        }
+
+        const res = await fetch(`/api/register?username=${u}&email=${e}&password=${p}`, { method: 'POST' });
+        const msg = await res.text();
+        if(msg === "Succes") {
+            alert("Cont creat cu succes! Acum te poți loga.");
+            window.location.href = "/login";
+        } else {
+            alert(msg);
+        }
+    }
+
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>
+</body>
+</html>

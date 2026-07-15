@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ro" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus RAG - Panou Admin</title>
+    <link rel="icon" type="image/png" href="/images/nexus_logo.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-mesh text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+<header class="glass bg-white/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
+            <img src="/images/nexus_logo.png" alt="Nexus RAG Logo" class="w-full h-full object-contain">
+        </div>
+        <div>
+            <h1 class="font-bold text-lg leading-none">Nexus RAG <span class="text-indigo-500">· Admin</span></h1>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Panou de administrare</span>
+        </div>
+    </div>
+
+    <a href="/" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all">
+        <i class="fa-solid fa-arrow-left text-xs"></i>
+        Înapoi la aplicație
+    </a>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto p-6 flex flex-col gap-6">
+
+    <!-- STATISTICI GLOBALE (text) -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <i class="fa-solid fa-users text-xl"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-bold" id="statUseri">-</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Utilizatori</p>
+            </div>
+        </div>
+        <div class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <i class="fa-solid fa-file-csv text-xl"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-bold" id="statFisiere">-</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Fișiere încărcate</p>
+            </div>
+        </div>
+        <div class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <i class="fa-solid fa-comments text-xl"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-bold" id="statInterogari">-</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Interogări totale</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRAFIC INTEROGĂRI PER USER -->
+    <section class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6">
+        <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-4">Interogări per utilizator</h2>
+        <canvas id="queriesChart" height="80"></canvas>
+    </section>
+
+    <!-- TABEL UTILIZATORI -->
+    <section class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6">
+        <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-4">Utilizatori înregistrați</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th class="py-3 px-2">Utilizator</th>
+                    <th class="py-3 px-2">Email</th>
+                    <th class="py-3 px-2">Rol</th>
+                    <th class="py-3 px-2 text-center">Fișiere</th>
+                    <th class="py-3 px-2 text-center">Interogări</th>
+                    <th class="py-3 px-2 text-center">Acțiuni</th>
+                </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- TABEL FIȘIERE -->
+    <section class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6">
+        <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-4">Fișiere CSV încărcate</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th class="py-3 px-2">Nume fișier</th>
+                    <th class="py-3 px-2">Proprietar</th>
+                    <th class="py-3 px-2 text-center">Acțiuni</th>
+                </tr>
+                </thead>
+                <tbody id="filesTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ISTORIC ÎNTREBĂRI USERI -->
+    <section class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6">
+        <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-4">
+            <i class="fa-solid fa-clock-rotate-left mr-2 text-indigo-500"></i>Istoric întrebări utilizatori
+        </h2>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-white/95 dark:bg-slate-900/95">
+                <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th class="py-3 px-2">Utilizator</th>
+                    <th class="py-3 px-2">Întrebare</th>
+                    <th class="py-3 px-2">Data și ora</th>
+                </tr>
+                </thead>
+                <tbody id="queriesTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ISTORIC ACȚIUNI ADMINI -->
+    <section class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6">
+        <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-4">
+            <i class="fa-solid fa-user-shield mr-2 text-amber-500"></i>Istoric acțiuni administratori
+        </h2>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-white/95 dark:bg-slate-900/95">
+                <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th class="py-3 px-2">Administrator</th>
+                    <th class="py-3 px-2">Acțiune</th>
+                    <th class="py-3 px-2">Data și ora</th>
+                </tr>
+                </thead>
+                <tbody id="actionsTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ISTORIC CONECTĂRI (LOGIN/LOGOUT) -->
+    <section class="glass bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6">
+        <h2 class="font-semibold text-sm text-slate-400 uppercase tracking-wider mb-4">
+            <i class="fa-solid fa-right-to-bracket mr-2 text-emerald-500"></i>Istoric conectări
+        </h2>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+            <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-white/95 dark:bg-slate-900/95">
+                <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                    <th class="py-3 px-2">Utilizator</th>
+                    <th class="py-3 px-2">Rol</th>
+                    <th class="py-3 px-2">Conectare</th>
+                    <th class="py-3 px-2">Deconectare</th>
+                    <th class="py-3 px-2">Durată</th>
+                </tr>
+                </thead>
+                <tbody id="sessionsTableBody"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

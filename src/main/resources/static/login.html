@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ro" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Nexus RAG - Autentificare</title>
+    <link rel="icon" type="image/png" href="/images/nexus_logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-mesh min-h-screen flex items-center justify-center p-4">
+<div class="glass bg-white/10 border border-white/10 p-10 rounded-3xl shadow-2xl w-full max-w-md">
+    <div class="text-center mb-10">
+        <div class="w-20 h-20 mx-auto mb-4">
+            <img src="/images/nexus_logo.png" alt="Nexus RAG Logo" class="w-full h-full object-contain">
+        </div>
+        <h1 class="text-3xl font-bold text-white">Bine ai revenit</h1>
+        <p class="text-slate-400 mt-2">Introdu datele pentru a accesa platforma</p>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('logout')) {
+            document.write('<div class="bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 text-sm font-medium px-4 py-3 rounded-xl mb-6 flex items-center justify-center gap-2"><i class="fa-solid fa-circle-check"></i> Te-ai deconectat cu succes!</div>');
+        } else if (urlParams.has('error')) {
+            document.write('<div class="bg-rose-500/10 border border-rose-500/50 text-rose-400 text-sm font-medium px-4 py-3 rounded-xl mb-6 flex items-center justify-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Date de conectare incorecte.</div>');
+        }
+    </script>
+
+    <form action="/login" method="POST" class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Utilizator</label>
+            <div class="relative">
+                <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="text" name="username" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Parolă</label>
+            <div class="relative">
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="password" id="loginPass" name="password" required class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl py-3 pl-11 pr-12 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+                <button type="button" onclick="togglePassword('loginPass', 'loginEye')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-400 transition-colors focus:outline-none">
+                    <i id="loginEye" class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="text-right">
+            <button type="button" onclick="openResetModal()" class="text-xs text-slate-400 hover:text-indigo-400 transition-colors">Ai uitat parola?</button>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95 mt-2">
+            Conectare
+        </button>
+    </form>
+
+    <div class="mt-8 text-center">
+        <p class="text-slate-400 text-sm">
+            Nu ai un cont?
+            <a href="/register" class="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4">Înregistrează-te acum</a>
+        </p>
+    </div>
+</div>
+
+<div id="resetModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden items-center justify-center z-50 p-4 transition-all">
+    <div class="glass bg-slate-900/90 border border-slate-800 p-8 rounded-3xl shadow-2xl w-full max-w-md relative animate-in zoom-in duration-300">
+        <button onclick="closeResetModal()" class="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors focus:outline-none">
+            <i class="fa-solid fa-circle-xmark text-2xl"></i>
+        </button>
+
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-key text-xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white">Recuperare Parolă</h2>
+            <p class="text-sm text-slate-400 mt-2">Introdu email-ul asociat contului tău.</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="relative">
+                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                <input type="email" id="recoveryEmail" placeholder="nume@exemplu.ro" class="w-full bg-slate-950/50 border border-slate-800 text-white rounded-xl py-3.5 pl-11 pr-4 focus:border-indigo-500 outline-none transition-all">
+            </div>
+
+            <button onclick="sendRecoveryEmail()" id="recoverBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                Trimite Parola Nouă
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Funcții noi pentru afișarea corectă a ferestrei (centrare pe mijloc)
+    function openResetModal() {
+        const modal = document.getElementById('resetModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeResetModal() {
+        const modal = document.getElementById('resetModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Funcția existentă pentru ochișor
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Scriptul actualizat pentru trimiterea emailului
+    async function sendRecoveryEmail() {
+        const email = document.getElementById('recoveryEmail').value;
+        if(!email) { alert("Te rugăm să introduci adresa de email!"); return; }
+
+        const btn = document.getElementById('recoverBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Se trimite...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/reset-password?email=${encodeURIComponent(email)}`, { method: 'POST' });
+            const msg = await res.text();
+
+            if (msg.includes("<!DOCTYPE html>")) {
+                alert("Eroare de securitate: Ruta de resetare este încă blocată de server!");
+            } else if(msg === "Succes") {
+                alert("Verifică Inbox-ul! Ți-am trimis noua parolă.");
+                closeResetModal();
+            } else {
+                alert(msg);
+            }
+        } catch(err) {
+            alert("Eroare de rețea. Verifică dacă serverul este pornit.");
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>

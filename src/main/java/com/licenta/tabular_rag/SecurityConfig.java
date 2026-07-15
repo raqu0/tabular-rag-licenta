@@ -8,10 +8,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final LoginSessionRepository loginSessionRepository;
+
+    public SecurityConfig(LoginSessionRepository loginSessionRepository) {
+        this.loginSessionRepository = loginSessionRepository;
+    }
 
     // 1. Algoritmul militar de criptare a parolelor
     @Bean
@@ -19,20 +29,50 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // Handler care se execută la logout: închide sesiunea și calculează durata
+    private LogoutHandler sessionLogoutHandler() {
+        return (request, response, authentication) -> {
+            if (authentication != null) {
+                String username = authentication.getName();
+                loginSessionRepository
+                        .findFirstByUsernameAndLogoutTimeIsNullOrderByLoginTimeDesc(username)
+                        .ifPresent(session -> {
+                            LocalDateTime now = LocalDateTime.now();
+                            session.setLogoutTime(now);
+                            long seconds = Duration.between(session.getLoginTime(), now).getSeconds();
+                            session.setDurationSeconds(seconds);
+                            loginSessionRepository.save(session);
+                            System.out.println(">>> LOGOUT: " + username + " - durata: " + seconds + " secunde");
+                        });
+            }
+        };
+    }
+
     // 2. Regulile de acces
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Oprim CSRF temporar ca să funcționeze upload-ul de fișiere
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**").permitAll() // CSS-ul și JS-ul pot fi descărcate fără parolă
-                        .anyRequest().authenticated() // ABSOLUT orice altceva cere parolă
+                        // Rute publice
+                        .requestMatchers("/login", "/register", "/login.html", "/register.html",
+                                "/css/**", "/js/**", "/images/**", "/api/register",
+                                "/api/reset-password", "/error").permitAll()
+
+                        // Rute exclusiv pentru ADMIN
+                        .requestMatchers("/admin", "/admin.html", "/api/admin/**").hasRole("ADMIN")
+                        // Orice altceva necesită autentificare
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .defaultSuccessUrl("/", true) // După un login cu succes, te duce direct pe platforma de RAG
+                        .loginPage("/login") // Pagina noastră custom
+                        .defaultSuccessUrl("/", true)
                         .permitAll()
                 )
-                .logout(logout -> logout.permitAll());
+                .logout(logout -> logout
+                        .addLogoutHandler(sessionLogoutHandler()) // Închidem sesiunea de login
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll());
 
         return http.build();
     }
@@ -52,6 +92,8 @@ public class SecurityConfig {
             if (userRepository.findByUsername("razvan").isEmpty()) {
                 User admin = new User();
                 admin.setUsername("razvan");
+                // Adăugăm și un email default ca să nu dea eroare (fiindcă coloana e setată pe NOT NULL)
+                admin.setEmail("razvan@licenta.ro");
                 admin.setPassword(passwordEncoder.encode("parola123")); // Aici are loc MAGIA criptării
                 admin.setRole("ADMIN");
                 userRepository.save(admin);
